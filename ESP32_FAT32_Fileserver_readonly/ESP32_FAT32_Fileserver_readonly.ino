@@ -1,7 +1,20 @@
 //only read
 //for ESP32 (if you want to use on Arduino shield, you have to rewrite setup().)
 //Write ssid & Password
-
+/*
+ * Connect the SD card to the following pins:
+ *
+ * SD Card | ESP32
+ *    D2       -
+ *    D3       SS
+ *    CMD      MOSI
+ *    VSS      GND
+ *    VDD      3.3V
+ *    CLK      SCK
+ *    VSS      GND
+ *    D0       MISO
+ *    D1       -
+ */
 #include <WiFi.h>
 #include <SD.h>
 #include <FS.h>
@@ -193,116 +206,138 @@ void loop() {
         }
         //if the line is blank, the request has ended.
         if(isBlankLine){
-          Serial.println("");
-          Serial.print("path:");
-          Serial.println(path);
-          //if(SD.exists(path)){ //check path is exist
-          if(path.endsWith("/")){ //Directory
-            if(!path.equals("/")){
-              path.remove(path.length()-1); //delet last "/"
-            }
-            if(SD.exists(path)){ //check path is exist
-              client.println("HTTP/1.1 200 OK");
-              client.println("Content-Type: text/html");
-              client.println("Connection: close");
-              client.println();
-              client.println("");
-              client.println("");
-              Serial.print("Directroy:");
-              Serial.println(path);
-              client.println("<!DOCTYPE html>");
-              client.println("<html>");
-              client.println("<head>");
-              client.println("<title>SD Reader</title>");
-              client.println("<meta charset=\"UTF-8\">");
-              client.println("</head>");
-              client.println("<body>");
-              //list up directory contents
-              client.print("<h1>");
-              client.print(path);
-              client.println("</h1>");
-              File dir = SD.open(path);
-              String IPaddr = ipToString(WiFi.localIP());
-              while(true){
-                File entry = dir.openNextFile();
-                if (!entry){
-                  break;
-                }
-                String filename = entry.name();
-                if (entry.isDirectory()) {
-                  filename += "/";
-                }
-                String filepath = "http://" + IPaddr + path;
-                if(path.equals("/")){
-                   filepath = filepath + filename;
-                }
-                else{
-                  filepath = filepath+ "/" + filename;
-                }
-                client.print("<p>");
-                //client.print(filepath);
-                client.print("<a href=\"");
-                client.print(filepath);
-                client.print("\" >");
-                client.print(filename);
-                client.println("</a>");
-                if(!filepath.endsWith("/")){ //display file size
-                  client.print(" ");
-                  client.println(kmgt(entry.size()));
-                }
-                client.println("</p>");
-              }
-              client.println("</body>");
-              client.println("</html>");
-            }
-            else{ //Directory not Found
-              client.println("HTTP/1.1 404 Not Found");
-              client.println("Connection: close");
-            }
-          }
-          else{ //File
-            if(SD.exists(path)){
-              String extension = getExtension(getFilename(path));
-              File file = SD.open(path);
-              int filesize = file.size();
-              client.println("HTTP/1.1 200 OK");
-              client.print("Content-Length: ");
-              client.println(filesize);
-              if(extension.equals("other")){
-                client.print("Content-Disposition");
-              }
-              else{
-                client.print("Content-Type: ");
-                client.println(getType(extension));
-              }
-              client.println("Connection: close");
-              client.println();
-              //client.println("");
-              //client.println("");
-              if (filesize >=1024){
-                const size_t bufferSize = 1024; //buffer
-                byte buffe[bufferSize];
-                while (file.available()) {
-                  size_t bytesRead = file.read(buffe, bufferSize);
-                  client.write(buffe, bytesRead);
-                }
-              }
-              else{
-                while (file.available()) {
-                  client.write(file.read()); //send file
-                }
-              }
-              file.close();
-            }
-            else{ //File not Found
-              client.println("HTTP/1.1 404 Not Found");
-              client.println("Connection: close");
-            }
-          }
-          client.println("");
+          sendHTTP(client,request); //send HTTP response
           break;
         }
       }
     }
   }
+}
+
+void sendHTTP(WiFiClient &client,const String& request) {
+  Serial.println("");
+  Serial.print("path:");
+  Serial.println(path);
+  if(path.equals("")){
+    path = "/";
+  }
+  if(path.endsWith("/")){ //Directory
+    if(!path.equals("/")){
+      path.remove(path.length()-1); //delet last "/"
+    }
+    if(SD.exists(path)){ //check path is exist
+      client.println("HTTP/1.1 200 OK");
+      client.println("Content-Type: text/html");
+      client.println("Connection: close");
+      client.println();
+      client.println("");
+      client.println("");
+      Serial.print("Directroy:");
+      Serial.println(path);
+      client.println("<!DOCTYPE html>");
+      client.println("<html>");
+      client.println("<head>");
+      client.println("<title>SD Reader</title>");
+      client.println("<meta charset=\"UTF-8\">");
+      client.println("</head>");
+      client.println("<body>");
+      //display current path
+      client.print("<h1>");
+      client.print(path);
+      if(!path.equals("/")){ //add "/"
+        client.print("/");
+      }
+      client.println("</h1>");
+      //Parent Directory
+      String IPaddr = ipToString(WiFi.localIP());
+      if(!path.equals("/")){
+        client.print("<p><a href=\"");
+        client.print("http://");
+        client.print(IPaddr);
+        client.print(path.substring(0, path.lastIndexOf("/")+1)); //Parent Directory path
+        client.print("\" >");
+        client.print("Parent Directory");
+        client.println("</a>");
+        client.println("</p>");
+      }
+      //list up directory contents
+      File dir = SD.open(path);
+      while(true){
+        File entry = dir.openNextFile();
+        if (!entry){
+          break;
+        }
+        String filename = entry.name();
+        if (entry.isDirectory()) {
+          filename += "/";
+        }
+        String fileurl = "http://" + IPaddr + path;
+        if(path.equals("/")){
+           fileurl = fileurl + filename;
+        }
+        else{
+          fileurl = fileurl + "/" + filename;
+        }
+        client.print("<p>");
+        //client.print(fileurl);
+        client.print("<a href=\"");
+        client.print(fileurl);
+        client.print("\" >");
+        client.print(filename);
+        client.println("</a>");
+        if(!filename.endsWith("/")){ //display file size
+          client.print(" ");
+          client.println(kmgt(entry.size()));
+        }
+        client.println("</p>");
+      }
+      client.println("</body>");
+      client.println("</html>");
+    }
+    else{ //Directory not Found
+      client.println("HTTP/1.1 404 Not Found");
+      client.println("Connection: close");
+    }
+  }
+  else{ //File
+    if(SD.exists(path)){
+      String extension = getExtension(getFilename(path));
+      File file = SD.open(path);
+      int filesize = file.size();
+      client.println("HTTP/1.1 200 OK");
+      client.print("Content-Length: ");
+      client.println(filesize);
+      if(extension.equals("other")){
+        client.print("Content-Disposition");
+      }
+      else{
+        client.print("Content-Type: ");
+        client.println(getType(extension));
+      }
+      client.println("Connection: close");
+      client.println();
+      //client.println("");
+      //client.println("");
+      if (filesize >=1024){
+        const size_t bufferSize = 1024; //buffer
+        byte buffe[bufferSize];
+        while (file.available()) {
+          size_t bytesRead = file.read(buffe, bufferSize);
+          client.write(buffe, bytesRead);
+        }
+      }
+      else{
+        while (file.available()) {
+          client.write(file.read()); //send file
+        }
+      }
+      file.close();
+    }
+    else{ //File not Found
+      client.println("HTTP/1.1 404 Not Found");
+      client.println("Connection: close");
+    }
+  }
+  client.println("");
+  return;
 }
