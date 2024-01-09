@@ -174,6 +174,7 @@ String kmgt(int bytes){
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
+  pinMode(Blue_LED, OUTPUT);
 
   // connect to WiFi
   WiFi.begin(ssid, password);

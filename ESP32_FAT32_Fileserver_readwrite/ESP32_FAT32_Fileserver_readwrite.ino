@@ -212,6 +212,7 @@ bool checkfilename(String checkstr){ //OK > true, invalid > false
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
+  pinMode(Blue_LED, OUTPUT);
 
   // connect to WiFi
   WiFi.begin(ssid, password);
@@ -231,11 +232,25 @@ void setup() {
   // Initialize SDcard
   if (!SD.begin()) {
     Serial.println("SD Card Mount Failed");
+    while (count < 100){
+      digitalWrite(Blue_LED, HIGH);
+      delay(500);
+      digitalWrite(Blue_LED, LOW);
+      delay(500);
+      count++;
+    }
     return;
   }
   uint8_t cardType = SD.cardType();
   if (cardType == CARD_NONE) {
     Serial.println("No SD card attached");
+    while (count < 100){
+      digitalWrite(Blue_LED, HIGH);
+      delay(500);
+      digitalWrite(Blue_LED, LOW);
+      delay(500);
+      count++;
+    }
     return;
   }
   Serial.println("SD Card initialized.");
