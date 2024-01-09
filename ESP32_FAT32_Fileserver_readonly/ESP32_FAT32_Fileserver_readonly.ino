@@ -49,6 +49,26 @@ String urlDecode(String str) {
   return decoded;
 }
 
+// ecode %URL
+String urlEncode(String str) {
+  String encoded = "";
+  char temp[] = "0x00";
+  
+  for (int i = 0; i < str.length(); i++) {
+    char c = str[i];
+    
+    if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~' || c == '/') {
+      encoded += c;
+    //} else if (c == ' ') {
+    //  encoded += '+';
+    } else {
+      sprintf(temp, "%02X", c);
+      encoded += '%' + String(temp);
+    }
+  }
+  return encoded;
+}
+
 //defines for client
 #define BUFFLEN 256 //length of the receive buffer
 char buff[BUFFLEN]; //buffer
@@ -62,8 +82,6 @@ String processReequest(char c) {
   if(c == '\n') {  //if the code is NL, read the GET request
     buff[count]='\0'; //put null character at the end
     String request = buff; //convert to String
-    Serial.print("request:");
-    Serial.println(request);
     isBlankLine = (count == 0); //and check if the line is empty
     count=0;
     return request;
@@ -175,11 +193,25 @@ void setup() {
   // Initialize SDcard
   if (!SD.begin()) {
     Serial.println("SD Card Mount Failed");
+    while (count < 100){
+      digitalWrite(Blue_LED, HIGH);
+      delay(500);
+      digitalWrite(Blue_LED, LOW);
+      delay(500);
+      count++;
+    }
     return;
   }
   uint8_t cardType = SD.cardType();
   if (cardType == CARD_NONE) {
     Serial.println("No SD card attached");
+    while (count < 100){
+      digitalWrite(Blue_LED, HIGH);
+      delay(500);
+      digitalWrite(Blue_LED, LOW);
+      delay(500);
+      count++;
+    }
     return;
   }
   Serial.println("SD Card initialized.");
@@ -195,14 +227,10 @@ void loop() {
     while(client.connected()) {
       if(client.available()) {
         char c = client.read();
-        Serial.write(c);
+        //Serial.write(c); //Output Request from client
         String request = processReequest(c);
-        if(request.startsWith("GET")){
-          //String path = request.substring(4).toInt();
-          path = request;
-          path.replace("GET ","");
-          path.replace(" HTTP/1.1","");
-          path = urlDecode(path); //decode%
+        if(!request.equals("")){
+          process_request(client,request);
         }
         //if the line is blank, the request has ended.
         if(isBlankLine){
@@ -214,10 +242,20 @@ void loop() {
   }
 }
 
+void process_request(WiFiClient &client,String request){
+  if(request.startsWith("GET")){
+    //String path = request.substring(4).toInt();
+    path = request;
+    path.replace("GET ","");
+    path.replace(" HTTP/1.1","");
+    path = urlDecode(path); //decode%
+  }
+}
+
 void sendHTTP(WiFiClient &client,const String& request) {
-  Serial.println("");
-  Serial.print("path:");
-  Serial.println(path);
+  //Serial.println("");
+  //Serial.print("path:");
+  //Serial.println(path);
   if(path.equals("")){
     path = "/";
   }
@@ -254,7 +292,7 @@ void sendHTTP(WiFiClient &client,const String& request) {
         client.print("<p><a href=\"");
         client.print("http://");
         client.print(IPaddr);
-        client.print(path.substring(0, path.lastIndexOf("/")+1)); //Parent Directory path
+        client.print(urlEncode(path.substring(0, path.lastIndexOf("/")+1))); //Parent Directory path
         client.print("\" >");
         client.print("Parent Directory");
         client.println("</a>");
@@ -271,12 +309,12 @@ void sendHTTP(WiFiClient &client,const String& request) {
         if (entry.isDirectory()) {
           filename += "/";
         }
-        String fileurl = "http://" + IPaddr + path;
+        String fileurl = "http://" + IPaddr + urlEncode(path);
         if(path.equals("/")){
            fileurl = fileurl + filename;
         }
         else{
-          fileurl = fileurl + "/" + filename;
+          fileurl = fileurl + "/" + urlEncode(filename);
         }
         client.print("<p>");
         //client.print(fileurl);
@@ -291,6 +329,11 @@ void sendHTTP(WiFiClient &client,const String& request) {
         }
         client.println("</p>");
       }
+      client.print("<hr>");
+      client.print("<p>");
+      client.print("Powered by ");
+      client.print("<a href=\"https://github.com/UnagiDojyou/ArduinoIDE_SD_FAT32_Fileserver\">ArduinoIDE_SD_FAT32_Fileserver</a>");
+      client.println("</p>");
       client.println("</body>");
       client.println("</html>");
     }
@@ -301,6 +344,8 @@ void sendHTTP(WiFiClient &client,const String& request) {
   }
   else{ //File
     if(SD.exists(path)){
+      Serial.print("File:");
+      Serial.println(path);
       String extension = getExtension(getFilename(path));
       File file = SD.open(path);
       int filesize = file.size();
@@ -316,20 +361,12 @@ void sendHTTP(WiFiClient &client,const String& request) {
       }
       client.println("Connection: close");
       client.println();
-      //client.println("");
-      //client.println("");
-      if (filesize >=1024){
-        const size_t bufferSize = 1024; //buffer
-        byte buffe[bufferSize];
-        while (file.available()) {
-          size_t bytesRead = file.read(buffe, bufferSize);
-          client.write(buffe, bytesRead);
-        }
-      }
-      else{
-        while (file.available()) {
-          client.write(file.read()); //send file
-        }
+      //send file to client with 1024 buffer.
+      const size_t bufferSize = 1024; //buffer size
+      byte buffe[bufferSize]; //buffe
+      while (file.available()) {
+        size_t bytesRead = file.read(buffe, bufferSize);
+        client.write(buffe, bytesRead);
       }
       file.close();
     }
@@ -339,5 +376,6 @@ void sendHTTP(WiFiClient &client,const String& request) {
     }
   }
   client.println("");
+  Serial.println("Response finish");
   return;
 }
