@@ -299,6 +299,7 @@ void sendHTTP(WiFiClient &client,const String& request) {
         client.println("</a>");
         client.println("</p>");
       }
+      client.print("<hr>");
       //list up directory contents
       File dir = SD.open(path);
       while(true){
