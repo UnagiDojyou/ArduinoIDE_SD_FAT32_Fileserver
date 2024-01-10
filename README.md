@@ -7,7 +7,7 @@ Connect an SD card via SPI and browse, edit (delete, rename), and upload the con
 * Wide compatibility.<br>
 Easy using to other boards.
 * No additional libraries required.<br>
-only use SD.h (& FS.h) & WiFi.h (or Ethernet.h)
+Use only SD.h (& FS.h) & WiFi.h (or Ethernet.h)
 
 ## Use with other boards
 ### For boards with WiFi

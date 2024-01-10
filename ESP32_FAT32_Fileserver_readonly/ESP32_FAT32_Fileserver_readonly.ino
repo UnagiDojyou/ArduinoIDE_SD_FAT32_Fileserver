@@ -78,8 +78,11 @@ String path;
 
 //put received char in buffer and check the GET command and empty line
 String processReequest(char c) {
-  if(c == '\r') return ""; //if the code is CR, ignore it
-  if(c == '\n') {  //if the code is NL, read the GET request
+  if(c == '\r'){ //if the code is CR, ignore it
+    isBlankLine = false;
+    return "";
+  }
+  else if(c == '\n') {  //if the code is NL, read the GET request
     buff[count]='\0'; //put null character at the end
     String request = buff; //convert to String
     isBlankLine = (count == 0); //and check if the line is empty
@@ -156,7 +159,7 @@ String getType(const String& extension) {
   }
 }
 
-String kmgt(int bytes){
+String kmgt(unsigned long bytes){
   if(bytes < 1000){
     return String(bytes)+"B";
   }
@@ -296,7 +299,7 @@ void sendHTTP(WiFiClient &client,const String& request) {
         client.print(urlEncode(path.substring(0, path.lastIndexOf("/")+1))); //Parent Directory path
         client.print("\" >");
         client.print("Parent Directory");
-        client.println("</a>");
+        client.print("</a>");
         client.println("</p>");
       }
       client.print("<hr>");
@@ -319,7 +322,6 @@ void sendHTTP(WiFiClient &client,const String& request) {
           fileurl = fileurl + "/" + urlEncode(filename);
         }
         client.print("<p>");
-        //client.print(fileurl);
         client.print("<a href=\"");
         client.print(fileurl);
         client.print("\" >");
@@ -330,7 +332,9 @@ void sendHTTP(WiFiClient &client,const String& request) {
           client.println(kmgt(entry.size()));
         }
         client.println("</p>");
+        entry.close();
       }
+      dir.close();
       client.print("<hr>");
       client.print("<p>");
       client.print("Powered by ");
@@ -350,7 +354,7 @@ void sendHTTP(WiFiClient &client,const String& request) {
       Serial.println(path);
       String extension = getExtension(getFilename(path));
       File file = SD.open(path);
-      int filesize = file.size();
+      unsigned long filesize = file.size();
       client.println("HTTP/1.1 200 OK");
       client.print("Content-Length: ");
       client.println(filesize);
@@ -378,6 +382,7 @@ void sendHTTP(WiFiClient &client,const String& request) {
     }
   }
   client.println("");
+  client.stop();
   Serial.println("Response finish");
   return;
 }
