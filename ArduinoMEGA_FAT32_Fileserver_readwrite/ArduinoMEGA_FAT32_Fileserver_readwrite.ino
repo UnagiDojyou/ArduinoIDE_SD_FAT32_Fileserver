@@ -1,30 +1,17 @@
-//for ESP32
-//Write ssid & Password
-//Write ssid & Password
-/*
- * Connect the SD card to the following pins:
- *
- * SD Card | ESP32
- *    D2       -
- *    D3       SS
- *    CMD      MOSI
- *    VSS      GND
- *    VDD      3.3V
- *    CLK      SCK
- *    VSS      GND
- *    D0       MISO
- *    D1       -
- */
-#include <WiFi.h>
+//for Arduino MEGA with shield
+//Write MAC address & IP adress
+//This was created by modifying ESP32_FAT32_Filserver_readwrite.
+//Arduino's SD.h don't support filerename. Therefore, the rename function is commented out.
+
+#include <Ethernet.h>
 #include <SD.h>
-#include <FS.h>
 
-#define Blue_LED 2 //BlueLED on DevKit(Need changes when using other boards)
+#define chipSelect 4
 
-WiFiServer server(80);
+EthernetServer server(80);
 
-const char* ssid = "Write your SSID";
-const char* password = "Write your Password";
+const byte mac[] = { Write your board MAC address }; //ex.{ 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0x0D }
+const byte ip[] = { Write IP address }; //ex.{ 192, 168, 0, 200 }
 
 // decode %URL
 String urlDecode(String str) {
@@ -78,7 +65,7 @@ String path;
 
 bool POSTflag = false;
 String cmdfilename;
-String newfilename;
+//String newfilename;
 int ContentLength;
 String errormessage;
 bool Uploadflag = false;
@@ -189,7 +176,7 @@ String getType(const String& extension) {
   }
 }
 
-String kmgt(unsigned long bytes){
+String kmgt(int bytes){
   if(bytes < 1000){
     return String(bytes)+"B";
   }
@@ -214,56 +201,24 @@ bool checkfilename(String checkstr){ //OK > true, invalid > false
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(115200);
-  pinMode(Blue_LED, OUTPUT);
-
-  // connect to WiFi
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.print(".");
-    if(digitalRead(Blue_LED)){
-      digitalWrite(Blue_LED, HIGH);
-    }
-    else{
-      digitalWrite(Blue_LED, LOW);
-    }
-  }
-  Serial.println("");
-  Serial.println("WiFi connected.");
-
+  Serial.begin(9600);
+  
   // Initialize SDcard
-  if (!SD.begin()) {
+  if (!SD.begin(chipSelect)) {
     Serial.println("SD Card Mount Failed");
-    while (count < 100){
-      digitalWrite(Blue_LED, HIGH);
-      delay(500);
-      digitalWrite(Blue_LED, LOW);
-      delay(500);
-      count++;
-    }
-    return;
-  }
-  uint8_t cardType = SD.cardType();
-  if (cardType == CARD_NONE) {
-    Serial.println("No SD card attached");
-    while (count < 100){
-      digitalWrite(Blue_LED, HIGH);
-      delay(500);
-      digitalWrite(Blue_LED, LOW);
-      delay(500);
-      count++;
-    }
     return;
   }
   Serial.println("SD Card initialized.");
+  
+  // connect to Ethernet
+  Ethernet.begin( mac, ip );
   server.begin(); //start the server
-  Serial.print("\nHTTP server started at: ");
-  Serial.println(WiFi.localIP());
+  Serial.print("HTTP server started at: ");
+  Serial.println(Ethernet.localIP());
 }
 
 void loop() {
-  WiFiClient client = server.available();
+  EthernetClient client = server.available();
   if (client) {
     Serial.println("new client");
     while(client.connected()) {
@@ -285,7 +240,7 @@ void loop() {
 }
 
 
-void process_request(WiFiClient &client,String request){
+void process_request(EthernetClient &client,String request){
   if(request.startsWith("GET")){
     //String path = request.substring(4).toInt();
     path = request;
@@ -318,7 +273,7 @@ void process_request(WiFiClient &client,String request){
     //Serial.println(request);
     cmdfilename = request.substring(0, request.indexOf("&"));
     cmdfilename.replace("cmdfilename=", "");
-    String secondIndex = request.substring(request.indexOf("&")+1, request.lastIndexOf("&"));
+    /*String secondIndex = request.substring(request.indexOf("&")+1, request.lastIndexOf("&"));
     String thirdIndex = request.substring(request.lastIndexOf("&")+1, request.length());
     if(secondIndex.startsWith("newfilename")){
       newfilename = secondIndex;
@@ -326,10 +281,11 @@ void process_request(WiFiClient &client,String request){
     else{
       newfilename = thirdIndex;
     }
-    newfilename.replace("newfilename=", "");
+    newfilename.replace("newfilename=", "");*/
     cmdfilename = urlDecode(cmdfilename); //decode
-    newfilename = urlDecode(newfilename); //decode
-    if(!checkfilename(cmdfilename) || !checkfilename(newfilename)){ //OK > true, invalid > false
+    //newfilename = urlDecode(newfilename); //decode
+    //if(!checkfilename(cmdfilename) || !checkfilename(newfilename)){ //OK > true, invalid > false
+    if(!checkfilename(cmdfilename)){ //OK > true, invalid > false
       POSTflag = false;
       errormessage = "Invalid characters are used.";
     }
@@ -353,7 +309,7 @@ void process_request(WiFiClient &client,String request){
       }
       if(request.length()!=0){ //if boundary found
         request.replace("boundary=","");
-        boundary = request;
+        errormessage = request;
         //Serial.print("boundary=");
         //Serial.println(boundary);
         Uploadflag = true;
@@ -365,8 +321,8 @@ void process_request(WiFiClient &client,String request){
       //ContentLength -= (request.length() + 1);
       String filename = path + request;
       //setting upload file
-      newfilename = path + newfilename;
-      File file = SD.open(newfilename, FILE_WRITE);
+      cmdfilename = path + cmdfilename;
+      File file = SD.open(cmdfilename, FILE_WRITE);
       while(client.available()){
         char c = client.read();
         //Serial.write(c);
@@ -381,7 +337,8 @@ void process_request(WiFiClient &client,String request){
       //recive file with buffer
       const int BufferSize = 1024;
       //int finish_count = BufferSize + boundary.length() + 3 + 11; //use client check
-      int finish_count = boundary.length() + 3 + 11; //use client check
+      int finish_count = errormessage.length() + 3 + 11; //use client check
+      errormessage = "";
       //const int filesize = ContentLength - boundary.length() - 3 - 11; //use file check
       const size_t bufferSize = BufferSize; //buffer size
       byte buffe[bufferSize]; //buffe
@@ -428,7 +385,7 @@ void process_request(WiFiClient &client,String request){
       }
     }
   }
-  else if(request.endsWith(boundary) && Uploadflag){ //start payload
+  else if(request.endsWith(errormessage) && Uploadflag){ //start payload
     //Serial.println("payload start");
     Serial.println(request);
     //ContentLength -= (boundary.length()+3); //boundary,--,\n
@@ -444,13 +401,15 @@ void process_request(WiFiClient &client,String request){
     }
     request.replace("filename=\"","");
     request.replace("\"","");
-    newfilename = request;
+    //newfilename = request;
+    cmdfilename = request;
     Serial.print("newfilename:");
-    Serial.println(newfilename);
+    //Serial.println(newfilename);
+    Serial.println(cmdfilename);
   }
 }
 
-void sendHTTP(WiFiClient &client,const String& request) {
+void sendHTTP(EthernetClient &client,const String& request) {
   //Serial.println("");
   //Serial.print("path:");
   //Serial.println(path);
@@ -495,9 +454,9 @@ void sendHTTP(WiFiClient &client,const String& request) {
       client.println("<input type=\"text\" name=\"cmdfilename\">");
       client.println("<input type=\"submit\" name=\"mkdir\" value=\"mkdir\">");
       client.println("<input type=\"submit\" name=\"delete\" value=\"delete\"><br>");
-      client.println("Enter new name.<br>");
+    /*client.println("Enter new name.<br>");
       client.println("<input type=\"text\" name=\"newfilename\">");
-      client.println("<input type=\"submit\" name=\"rename\" value=\"rename\">");
+      client.println("<input type=\"submit\" name=\"rename\" value=\"rename\">");*/
       client.println("</form>");
       //file upload
       client.print("<form action=\"");
@@ -518,7 +477,7 @@ void sendHTTP(WiFiClient &client,const String& request) {
         errormessage = "";
       }
       //Parent Directory
-      String IPaddr = ipToString(WiFi.localIP());
+      String IPaddr = ipToString(Ethernet.localIP());
       if(!path.equals("/")){
         client.print("<p><a href=\"");
         client.print("http://");
@@ -526,7 +485,7 @@ void sendHTTP(WiFiClient &client,const String& request) {
         client.print(urlEncode(path.substring(0, path.lastIndexOf("/")+1))); //Parent Directory path
         client.print("\" >");
         client.print("Parent Directory");
-        client.print("</a>");
+        client.println("</a>");
         client.println("</p>");
       }
       client.print("<hr>");
@@ -633,7 +592,7 @@ void sendHTTP(WiFiClient &client,const String& request) {
       }
     }
   }
-  else if(POSTflag && request.indexOf("rename=rename") > -1){ //rename
+  /*else if(POSTflag && request.indexOf("rename=rename") > -1){ //rename
     Serial.println("rename");
     String Newname = path + newfilename;
     String Oldname = path + cmdfilename;
@@ -643,13 +602,12 @@ void sendHTTP(WiFiClient &client,const String& request) {
     else if(!SD.rename(Oldname, Newname)) {
       errormessage = "Cannot rename " + Oldname + "to" + "Newname";
     }
-  }
+  }*/
   if(POSTflag){ //send page(must be exexute if(path.endsWith("/") && !POSTflag))
     POSTflag = false;
     sendHTTP(client,request);
   }
   client.println("");
-  client.stop();
   Serial.println("Response finish");
   return;
 }

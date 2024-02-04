@@ -1,5 +1,5 @@
 //only read
-//for Arduino UNO with shield (if you want to use on Arduino shield, you have to rewrite setup().)
+//for Arduino UNO with shield
 //Write MAC address & IP adress*2
 //This was created by modifying ESP32_FAT32_Filserver_readwrite.
 //Commenting out points to features that were cut due to lack of RAM.
@@ -179,6 +179,7 @@ void setup() {
     return;
   }
   //Serial.println("SD Card initialized.");
+  
   //connect to Ethernet
   Ethernet.begin( mac, ip );
   server.begin(); //start the server
