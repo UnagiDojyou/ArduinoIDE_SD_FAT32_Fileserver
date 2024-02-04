@@ -21,19 +21,27 @@ Enter your WiFi SSID and password into the sketch.<br>
 For ArduinoUNO with Ethernet shield.<br>
 Files can be only viewed. Limited functionality to work with less RAM and Flash.<br>
 Enter the MAC address and IP address in the sketch.<br>
+* __ArduinoMEGA_FAT32_Fileserver_readwrite__<br>
+__NOT TESTED__<br>
+For ArduinoMEGA with Ethernet shield.<br>
+Files can be viewed, uploaded, and deleted.<br>
+SD.h for Arduino does not support rename, so there is no renaming function.<br>
+Enter the MAC address and IP address in the sketch.<br>
+* __ArduinoMEGA_FAT32_Fileserver_readonly__<br>
+__NOT TESTED__<br>
+For ArduinoMEGA with Ethernet shield.<br>
+Files can be only viewed.<br>
+Enter the MAC address and IP address in the sketch.<br>
 
 ## Use with other boards
 ### For boards with WiFi
+* __Use the one for ESP32 as a base.__<br>
 * __Rewrite 2 in "#define Blue_LED 2".__ <br>
 Blue_LED serves as an indicator during WiFi and SD card initialization. Therefore, it should be a GPIO with an LED.<br>
 * __FS.h should be erased if necessary.__<br>
 * __It is believed that Rename is not available on many non-ESP boards.__<br>
 * __uint8_t cardType = SD.cardType(); may not work, delete as appropriate.__<br>
-### For boards with Ethernet instead of WiFi
-* __Rewrite 2 in "#define Blue_LED 2".__<br>
-Blue_LED serves as an indicator during WiFi and SD card initialization. Therefore, it should be a GPIO with an LED.<br>
-* __FS.h should be erased if necessary.__<br>
-* __Include Ethernet.h instead of WiFi.h.__<br>
-And Please define MAC address, change WiFi to Ethernet, and change setup. Especially the setup will most likely change.<br>
-* __It is believed that Rename is not available on many non-ESP boards.__<br>
-* __uint8_t cardType = SD.cardType(); may not work, delete as appropriate.__<br>
+### For boards with Ethernet
+* __Use the one for ArduinoMEGA as a base.__<br>
+* __Rewrite 4 in "#define chipSelect 4".__<br>
+* __If SD.h supports rename, refer to the one for ESP32 and re-enable it.__<br>
