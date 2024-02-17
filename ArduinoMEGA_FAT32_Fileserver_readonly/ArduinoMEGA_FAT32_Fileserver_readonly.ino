@@ -5,8 +5,10 @@
 
 #include <Ethernet.h>
 #include <SD.h>
+#include <SPI.h>
 
 #define chipSelect 4
+#define Blue_LED 13 //LED on EthernetShield
 
 EthernetServer server(80);
 
@@ -168,6 +170,15 @@ void setup() {
   // Initialize SDcard
   if (!SD.begin(chipSelect)) {
     Serial.println("SD Card Mount Failed");
+    SPI.end();
+    pinMode(Blue_LED, OUTPUT);
+    while (count < 100){
+      digitalWrite(Blue_LED, HIGH);
+      delay(500);
+      digitalWrite(Blue_LED, LOW);
+      delay(500);
+      count++;
+    }
     return;
   }
   Serial.println("SD Card initialized.");
