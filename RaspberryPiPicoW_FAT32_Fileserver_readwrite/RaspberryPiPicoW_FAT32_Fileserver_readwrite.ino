@@ -19,6 +19,11 @@ WiFiServer server(80);
 const char* ssid = "Write your SSID";
 const char* password = "Write your Password";
 
+const int _MISO = 4;   // AKA SPI RX
+const int _MOSI = 7;  // AKA SPI TX
+const int _CS = 5;
+const int _SCK = 6;
+
 // decode %URL
 String urlDecode(String str) {
   String decoded = "";
@@ -77,12 +82,6 @@ String errormessage;
 bool Uploadflag = false;
 String boundary;
 bool Header = true;  //when it is false, countdown ContentLength
-
-const int _MISO = 4;   // AKA SPI RX
-const int _MOSI = 7;  // AKA SPI TX
-const int _CS = 5;
-const int _SCK = 6;
-
 
 
 //put received char in buffer and check the GET command and empty line
@@ -243,7 +242,7 @@ void setup() {
   } 
 
   int type = SD.type();
-  if(type != 0 && type != 1 && type != 3){
+  if(type > 3){
     Serial.println("No SD card attached");
     while (count < 100) {
       digitalWrite(Blue_LED, HIGH);
