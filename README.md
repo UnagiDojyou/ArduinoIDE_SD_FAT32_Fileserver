@@ -17,6 +17,12 @@ This is the most basic version for boards with WiFi.<br>
 * __ESP32_FAT32_Fileserver_readonly__<br>
 Files can be only viewed.<br>
 Enter your WiFi SSID and password into the sketch.<br>
+* __RaspberryPiPicoW_FAT32_Fileserver_readwrite__<br>
+Files can be viewed, uploaded, deleted, and renamed.<br>
+Enter your WiFi SSID and password into the sketch.<br>
+* __RaspberryPiPicoW_FAT32_Fileserver_readonly__<br>
+Files can be only viewed.<br>
+Enter your WiFi SSID and password into the sketch.<br>
 * __ArduinoUNO_FAT32_Fileserver_readonly__<br>
 For ArduinoUNO with Ethernet shield.<br>
 Files can be only viewed. Limited functionality to work with less RAM and Flash.<br>
@@ -35,7 +41,7 @@ Enter the MAC address and IP address in the sketch.<br>
 
 ## Use with other boards
 ### For boards with WiFi
-* __Use the one for ESP32 as a base.__<br>
+* __Use the one for ESP32 or RaspberryPiPicoW as a base.__<br>
 * __Rewrite 2 in "#define Blue_LED 2".__ <br>
 Blue_LED serves as an indicator during WiFi and SD card initialization. Therefore, it should be a GPIO with an LED.<br>
 * __FS.h should be erased if necessary.__<br>
