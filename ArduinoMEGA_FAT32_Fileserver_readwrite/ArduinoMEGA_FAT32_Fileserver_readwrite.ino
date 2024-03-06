@@ -188,7 +188,7 @@ String kmgt(int bytes){
   else if(1000000 <= bytes && bytes < 1000000000){
     return String(int(bytes/1000000))+"MB";
   }
-  else if(1000000000 <= bytes && bytes < 1000000000000){
+  else{
     return String(int(bytes/1000000000))+"GB";
   }
 }
