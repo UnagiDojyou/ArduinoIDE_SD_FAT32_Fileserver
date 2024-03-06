@@ -210,12 +210,7 @@ void setup() {
     return;
   } 
 
-  
-  Serial.print("type");
-  Serial.println(SD.type());
-
   int type = SD.type();
-  Serial.println(type);
   if(type > 3){
     Serial.println("No SD card attached");
     while (count < 100) {
