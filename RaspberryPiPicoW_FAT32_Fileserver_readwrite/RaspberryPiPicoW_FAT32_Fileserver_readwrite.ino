@@ -10,7 +10,7 @@
  */
 #include <WiFi.h>
 #include <SD.h>
-#include <FS.h>
+#include <SPI.h>
 
 #define Blue_LED LED_BUILTIN  //BlueLED on DevKit(Need changes when using other boards)
 
@@ -192,11 +192,8 @@ String kmgt(unsigned long bytes) {
     return String(int(bytes / 1000)) + "KB";
   } else if (1000000 <= bytes && bytes < 1000000000) {
     return String(int(bytes / 1000000)) + "MB";
-  } else if (1000000000 <= bytes && bytes < 1000000000000) {
+  } else{
     return String(int(bytes / 1000000000)) + "GB";
-  }
-  else{
-    return "too big";
   }
 }
 
@@ -243,33 +240,22 @@ void setup() {
       count++;
     }
     return;
-  } else {
-    Serial.println("Wiring is correct and a card is present.");
-  }
+  } 
 
-  Serial.print("Card type:         ");
-  switch (SD.type()) {
-    case 0:
-      Serial.println("SD1");
-      break;
-    case 1:
-      Serial.println("SD2");
-      break;
-    case 3:
-      Serial.println("SDHC/SDXC");
-      break;
-    default:
-      Serial.println("No SD card attached");
-      while (count < 100) {
-        digitalWrite(Blue_LED, HIGH);
-        delay(500);
-        digitalWrite(Blue_LED, LOW);
-        delay(500);
-        count++;
-      }
+  int type = SD.type();
+  if(type != 0 && type != 1 && type != 3){
+    Serial.println("No SD card attached");
+    while (count < 100) {
+      digitalWrite(Blue_LED, HIGH);
+      delay(500);
+      digitalWrite(Blue_LED, LOW);
+      delay(500);
+      count++;
+    }
     return;
-
   }
+  
+
   Serial.println("SD Card initialized.");
   server.begin();  //start the server
   Serial.print("\nHTTP server started at: ");
