@@ -42,4 +42,4 @@ Include CheckAndResponse.h.<br>
 SD.bigin() and server.begin() have to done in the setup, and CheckAndResponse() have to be written in the loop. <br>
 Select readwrite/readonly in CheckAndResponse.h.<br>
 Select UseWiFi/UseEthernet in CheckAndResponse.h.<br>
-Select enable/disable Rename function in CheckAndResponse.h.<br>
+Select enable/disable Rename function in CheckAndResponse.h. (Some boards' SD.h do not support rename.)<br>
