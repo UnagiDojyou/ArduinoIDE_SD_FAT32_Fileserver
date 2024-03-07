@@ -1,3 +1,4 @@
+//readonly
 //for Arduino MEGA with shield
 //Write MAC address & IP adress
 //This was created by modifying ESP32_FAT32_Filserver_readwrite.
