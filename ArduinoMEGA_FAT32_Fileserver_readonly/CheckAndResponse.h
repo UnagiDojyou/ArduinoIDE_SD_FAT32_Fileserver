@@ -5,10 +5,10 @@
 #define readonly
 
 //you could chose UseWiFi/UseEthernet
-#define UseWiFi
+#define UseEthernet
 
 //Enable/Disable Rename
-#define EnableRename
+#define DisableRename
 
 
 #ifdef UseWiFi

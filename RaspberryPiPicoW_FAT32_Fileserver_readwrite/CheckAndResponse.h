@@ -8,7 +8,7 @@
 #define UseWiFi
 
 //Enable/Disable Rename
-#define EnableReaname
+#define EnableRename
 
 
 #ifdef UseWiFi
