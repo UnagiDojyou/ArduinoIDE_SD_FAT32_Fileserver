@@ -8,17 +8,15 @@
    ** CS            - pin 1, 5, or 17
    ** SCK           - pin 2, 6, or 18
  */
-#include <WiFi.h>
+#ifdef  UseWiFi
+  #include <WiFi.h>
+#else
+  #include <Ethernet.h>
+#endif
+
 #include <SD.h>
 #include <SPI.h>
 #include "CheckAndResponse.h"
-
-//you could chose readwrite\readonly
-#define readwrite
-//you could chose WiFi/Ethernet
-#define WiFiEthernet WiFi
-
-#define EnableReaname
 
 #define Blue_LED LED_BUILTIN  //BlueLED on DevKit(Need changes when using other boards)
 
@@ -31,8 +29,6 @@ const int _MISO = 4;   // AKA SPI RX
 const int _MOSI = 7;  // AKA SPI TX
 const int _CS = 5;
 const int _SCK = 6;
-
-
 
 void setup() {
   // put your setup code here, to run once:

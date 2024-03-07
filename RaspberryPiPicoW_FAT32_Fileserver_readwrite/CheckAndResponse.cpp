@@ -1,7 +1,11 @@
 #include "CheckAndResponse.h"
 
-#include <WiFi.h>
-#include <Ethernet.h>
+#ifdef  UseWiFi
+  #include <WiFi.h>
+#else
+  #include <Ethernet.h>
+#endif
+
 #include <SD.h>
 #include <SPI.h>
 
@@ -448,9 +452,13 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
       client.println("<input type=\"text\" name=\"cmdfilename\">");
       client.println("<input type=\"submit\" name=\"mkdir\" value=\"mkdir\">");
       client.println("<input type=\"submit\" name=\"delete\" value=\"delete\"><br>");
+
+  #ifndef DisableRename
       client.println("Enter new name.<br>");
       client.println("<input type=\"text\" name=\"newfilename\">");
       client.println("<input type=\"submit\" name=\"rename\" value=\"rename\">");
+  #endif
+      
       client.println("</form>");
       //file upload
       client.print("<form action=\"");
@@ -582,7 +590,10 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
         errormessage = "Cannot delete " + rmpath + "/";
       }
     }
-  } else if (POSTflag && request.indexOf("rename=rename") > -1) {  //rename
+  } 
+  
+  #ifndef DisableRename
+  else if (POSTflag && request.indexOf("rename=rename") > -1) {  //rename
     Serial.println("rename");
     String Newname = path + newfilename;
     String Oldname = path + cmdfilename;
@@ -592,6 +603,8 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
       errormessage = "Cannot rename " + Oldname + "to" + "Newname";
     }
   }
+  #endif
+
   if (POSTflag) {  //send page(must be exexute if(path.endsWith("/") && !POSTflag))
     POSTflag = false;
     sendHTTP(client, request);

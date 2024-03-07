@@ -1,15 +1,35 @@
 #ifndef CHECHANDRESPONSE_H
 #define CHECHANDRESPONSE_H
-#include <WiFi.h>
+
+//you could chose readwrite\readonly
+#define readwrite
+
+//you could chose UseWiFi/UseEthernet
+#define UseWiFi
+
+//Enable/Disable Rename
+#define EnableReaname
+
+
+#ifdef UseWiFi
+  #include <WiFi.h>
+  #define WiFiEthernet WiFi
+  #define WiFiEthernetClient WiFiClient
+#else
+  #include <Ethernet.h>
+  #define WiFiEthernet Ethernet
+  #define WiFiEthernetClient EthernetClient
+#endif
+
 #include <SD.h>
 #include <SPI.h>
 
-bool CheckAndResponse(WiFiClient &client);
+bool CheckAndResponse(WiFiEthernetClient &client);
 
 
-void process_request(WiFiClient& client, String request);
+void process_request(WiFiEthernetClient& client, String request);
 
-void sendHTTP(WiFiClient& client, const String& request);
+void sendHTTP(WiFiEthernetClient& client, const String& request);
 /*
 bool checkfilename(String checkstr);
 
