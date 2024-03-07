@@ -18,8 +18,6 @@
 #include <SPI.h>
 #include "CheckAndResponse.h"
 
-#define Blue_LED LED_BUILTIN  //BlueLED on DevKit(Need changes when using other boards)
-
 WiFiServer server(80);
 
 const char* ssid = "Write your SSID";
@@ -33,17 +31,17 @@ const int _SCK = 6;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
-  pinMode(Blue_LED, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
 
   // connect to WiFi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.print(".");
-    if (digitalRead(Blue_LED)) {
-      digitalWrite(Blue_LED, HIGH);
+    if (digitalRead(LED_BUILTIN)) {
+      digitalWrite(LED_BUILTIN, HIGH);
     } else {
-      digitalWrite(Blue_LED, LOW);
+      digitalWrite(LED_BUILTIN, LOW);
     }
   }
   Serial.println("");
@@ -58,9 +56,9 @@ void setup() {
   if (!SD.begin(_CS, SPI)) {
     Serial.println("SD Card Mount Failed");
     while (count < 100) {
-      digitalWrite(Blue_LED, HIGH);
+      digitalWrite(LED_BUILTIN, HIGH);
       delay(500);
-      digitalWrite(Blue_LED, LOW);
+      digitalWrite(LED_BUILTIN, LOW);
       delay(500);
       count++;
     }
@@ -71,9 +69,9 @@ void setup() {
   if(type > 3){
     Serial.println("No SD card attached");
     while (count < 100) {
-      digitalWrite(Blue_LED, HIGH);
+      digitalWrite(LED_BUILTIN, HIGH);
       delay(500);
-      digitalWrite(Blue_LED, LOW);
+      digitalWrite(LED_BUILTIN, LOW);
       delay(500);
       count++;
     }
