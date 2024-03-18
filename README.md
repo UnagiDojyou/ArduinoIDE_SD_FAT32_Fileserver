@@ -1,5 +1,8 @@
 # ArduinoIDE SD FAT32 Fileserver
-Connect an SD card via SPI and browse, edit (delete, rename), and upload the contents of the SD card via HTTP.
+Connect an SD card via SPI and browse, edit (delete, rename), and upload the contents of the SD card via HTTP.<br>
+<br>
+![sample](samplevideo.gif)
+
 ## Feature
 * __View SD card contetnts on browser.__
 * __Download contents.__
