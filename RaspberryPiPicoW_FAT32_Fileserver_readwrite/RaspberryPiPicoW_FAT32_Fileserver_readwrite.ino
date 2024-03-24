@@ -14,9 +14,11 @@
   #include <Ethernet.h>
 #endif
 
-#include <SD.h>
+#include <SdFat.h>
 #include <SPI.h>
 #include "CheckAndResponse.h"
+
+SdFat sd;
 
 WiFiServer server(80);
 
@@ -49,11 +51,8 @@ void setup() {
 
   int count = 0;
   // Initialize SDcard
-  SPI.setRX(_MISO);
-  SPI.setTX(_MOSI);
-  SPI.setSCK(_SCK);
-
-  if (!SD.begin(_CS, SPI)) {
+  //sd.begin(_CS, SD_SCK_MHZ(50));
+  if (!sd.begin(_CS, SD_SCK_MHZ(50))){
     Serial.println("SD Card Mount Failed");
     while (count < 100) {
       digitalWrite(LED_BUILTIN, HIGH);
@@ -63,9 +62,9 @@ void setup() {
       count++;
     }
     return;
-  } 
+  }
 
-  int type = SD.type();
+  /*int type = SD.type();
   if(type > 3){
     Serial.println("No SD card attached");
     while (count < 100) {
@@ -76,8 +75,7 @@ void setup() {
       count++;
     }
     return;
-  }
-  
+  }*/
 
   Serial.println("SD Card initialized.");
   server.begin();  //start the server

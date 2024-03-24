@@ -6,8 +6,12 @@
   #include <Ethernet.h>
 #endif
 
-#include <SD.h>
+#include <SdFat.h>
 #include <SPI.h>
+
+//SdFat sd;
+SdFile file;
+SdFile root;
 
 // decode %URL
 String urlDecode(String str) {
@@ -312,7 +316,7 @@ void process_request(WiFiEthernetClient& client, String request) {
       String filename = path + request;
       //setting upload file
       newfilename = path + newfilename;
-      File file = SD.open(newfilename, FILE_WRITE);
+      File file = file.open(newfilename, FILE_WRITE);
       while (client.available()) {
         char c = client.read();
         //Serial.write(c);
@@ -414,7 +418,7 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
     if (!path.equals("/")) {
       path.remove(path.length() - 1);  //delet last "/"
     }
-    if (SD.exists(path)) {  //check path is exist
+    if (sd.exists(path)) {  //check path is exist
       client.println("HTTP/1.1 200 OK");
       client.println("Content-Type: text/html");
       client.println("Connection: close");
@@ -492,14 +496,17 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
       }
       client.print("<hr>");
       //list up directory contents
-      File dir = SD.open(path);
-      while (true) {
-        File entry = dir.openNextFile();
-        if (!entry) {
-          break;
-        }
-        String filename = entry.name();
-        if (entry.isDirectory()) {
+      int len = path.length() + 1; //string to char
+      char pathchar[len]; 
+      path.toCharArray(pathchar, len);
+
+      root.open(pathchar);
+      //root.getName(char *name, size_t size)
+      while (file.openNext(&root, O_RDONLY)) {
+        char filenamechar[50];
+        file.getName(filenamechar,sizeof(filenamechar));
+        String filename = filenamechar;
+        if (file.isDir()) {
           filename += "/";
         }
         String fileurl = "http://" + IPaddr + urlEncode(path);
@@ -516,16 +523,16 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
         client.println("</a>");
         if (!filename.endsWith("/")) {  //display file size
           client.print(" ");
-          client.println(kmgt(entry.size()));
+          client.println(kmgt(file.fileSize()));
         }
         client.println("</p>");
-        entry.close();
+        file.close();
       }
-      dir.close();
+      root.close();
       client.print("<hr>");
       client.print("<p>");
       client.print("Powered by ");
-      client.print("<a href=\"https://github.com/UnagiDojyou/ArduinoIDE_SD_FAT32_Fileserver\">ArduinoIDE_SD_FAT32_Fileserver</a>");
+      client.print("<a href=\"https://github.com/UnagiDojyou/ArduinoIDE_SdFat_FAT32_Fileserver\">ArduinoIDE_SdFat_FAT32_Fileserver</a>");
       client.println("</p>");
       client.println("</body>");
       client.println("</html>");
@@ -534,12 +541,17 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
       client.println("Connection: close");
     }
   } else if (!POSTflag) {  //File
-    if (SD.exists(path)) {
+    if (sd.exists(path)) {
       Serial.print("File:");
       Serial.println(path);
       String extension = getExtension(getFilename(path));
-      File file = SD.open(path);
-      unsigned long filesize = file.size();
+
+      int len = path.length() + 1; //string to char
+      char pathchar[len]; 
+      path.toCharArray(pathchar, len);
+
+      file.open(pathchar);
+      unsigned long filesize = file.fileSize();
       client.println("HTTP/1.1 200 OK");
       client.print("Content-Length: ");
       client.println(filesize);
@@ -571,7 +583,7 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
     String newdir = path + cmdfilename;
     Serial.print("mkdir:");
     Serial.println(newdir);
-    if (!SD.mkdir(newdir)) {
+    if (!sd.mkdir(newdir)) {
       errormessage = "Cannot make " + newdir;
     }
   } else if (POSTflag && request.indexOf("delete=delete") > -1) {  //delete
@@ -580,7 +592,7 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
     Serial.print("delete:");
     Serial.println(rmpath);
     if (cmdfilename.endsWith("/")) {  //directory
-      if (!SD.rmdir(rmpath.substring(0, rmpath.length() - 1))) {
+      if (!sd.rmdir(rmpath.substring(0, rmpath.length() - 1))) {
         errormessage = "Cannot delete " + rmpath;
       }
     } else {  //file
