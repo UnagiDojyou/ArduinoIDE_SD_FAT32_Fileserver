@@ -51,6 +51,10 @@ void setup() {
 
   int count = 0;
   // Initialize SDcard
+  SPI.setRX(_MISO);
+  SPI.setTX(_MOSI);
+  SPI.setSCK(_SCK);
+
   //sd.begin(_CS, SD_SCK_MHZ(50));
   if (!sd.begin(_CS, SD_SCK_MHZ(50))){
     Serial.println("SD Card Mount Failed");
