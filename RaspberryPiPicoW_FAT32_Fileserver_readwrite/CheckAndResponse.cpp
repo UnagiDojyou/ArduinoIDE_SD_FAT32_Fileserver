@@ -316,7 +316,10 @@ void process_request(WiFiEthernetClient& client, String request) {
       String filename = path + request;
       //setting upload file
       newfilename = path + newfilename;
-      File file = file.open(newfilename, FILE_WRITE);
+      int len = path.length() + 1; //string to char
+      char pathchar[len];
+      path.toCharArray(pathchar, len);
+      file.open(pathchar);
       while (client.available()) {
         char c = client.read();
         //Serial.write(c);
@@ -596,7 +599,7 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
         errormessage = "Cannot delete " + rmpath;
       }
     } else {  //file
-      if (!SD.remove(rmpath)) {
+      if (!sd.remove(rmpath)) {
         errormessage = "Cannot delete " + rmpath + "/";
       }
     }
@@ -609,7 +612,7 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
     String Oldname = path + cmdfilename;
     if (Newname.endsWith("/") ^ Oldname.endsWith("/")) {
       errormessage = "Either \"/\" is missing or surplus.";
-    } else if (!SD.rename(Oldname, Newname)) {
+    } else if (!sd.rename(Oldname, Newname)) {
       errormessage = "Cannot rename " + Oldname + "to" + "Newname";
     }
   }

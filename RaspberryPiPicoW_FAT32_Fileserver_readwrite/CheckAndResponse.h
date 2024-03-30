@@ -2,7 +2,7 @@
 #define CHECHANDRESPONSE_H
 
 //you could chose readwrite\readonly
-#define readonly
+#define readwrite
 
 //you could chose UseWiFi/UseEthernet
 #define UseWiFi
