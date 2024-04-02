@@ -554,7 +554,7 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
       //send file to client with 1024 buffer.
       const size_t bufferSize = 1024;  //buffer size
       byte buffe[bufferSize];          //buffe
-      while (file.available()) {
+      while (file.available() && client.connected()) {
         size_t bytesRead = file.read(buffe, bufferSize);
         client.write(buffe, bytesRead);
       }

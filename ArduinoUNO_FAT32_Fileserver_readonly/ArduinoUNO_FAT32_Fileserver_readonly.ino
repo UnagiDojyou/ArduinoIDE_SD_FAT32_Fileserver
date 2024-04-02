@@ -359,7 +359,7 @@ void sendHTTP(EthernetClient &client) {
       //send file to client with 30 buffer.
       const size_t bufferSize = 30; //buffer size
       byte buffe[bufferSize]; //buffe
-      while (file.available()) {
+      while (file.available() && client.connected()) {
         size_t bytesRead = file.read(buffe, bufferSize);
         client.write(buffe, bytesRead);
       }
