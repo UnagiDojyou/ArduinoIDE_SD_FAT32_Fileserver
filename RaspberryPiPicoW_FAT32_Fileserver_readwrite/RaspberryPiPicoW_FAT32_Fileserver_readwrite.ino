@@ -8,6 +8,9 @@
    ** CS            - pin 1, 5, or 17
    ** SCK           - pin 2, 6, or 18
  */
+
+#define UseWiFi
+
 #ifdef  UseWiFi
   #include <WiFi.h>
 #else
@@ -41,9 +44,9 @@ void setup() {
     delay(1000);
     Serial.print(".");
     if (digitalRead(LED_BUILTIN)) {
-      digitalWrite(LED_BUILTIN, HIGH);
-    } else {
       digitalWrite(LED_BUILTIN, LOW);
+    } else {
+      digitalWrite(LED_BUILTIN, HIGH);
     }
   }
   Serial.println("");

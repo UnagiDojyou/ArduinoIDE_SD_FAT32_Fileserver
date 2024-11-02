@@ -9,6 +9,10 @@
 #include <SdFat.h>
 #include <SPI.h>
 
+#if USE_UTF8_LONG_NAMES == 0
+#error Enable USE_UTF8_LONG_NAMES in \libraries\SdFat\src\SdFatConfig.h
+#endif
+
 //SdFat sd;
 SdFile file;
 SdFile root;
@@ -316,10 +320,14 @@ void process_request(WiFiEthernetClient& client, String request) {
       String filename = path + request;
       //setting upload file
       newfilename = path + newfilename;
-      int len = path.length() + 1; //string to char
+      unsigned int len = newfilename.length() + 1; //string to char
       char pathchar[len];
-      path.toCharArray(pathchar, len);
-      file.open(pathchar);
+      newfilename.toCharArray(pathchar, len);
+      file.open(pathchar, FILE_WRITE);
+      if (!file) {
+        errormessage = "cannot make now file.";
+        Serial.println(erromessage);
+      } 
       while (client.available()) {
         char c = client.read();
         //Serial.write(c);
@@ -337,8 +345,8 @@ void process_request(WiFiEthernetClient& client, String request) {
       int finish_count = boundary.length() + 3 + 11;  //use client check
       //const int filesize = ContentLength - boundary.length() - 3 - 11; //use file check
       const size_t bufferSize = BufferSize;  //buffer size
-      byte buffe[bufferSize];                //buffe
-      int countb = 0;
+      uint8_t buffe[bufferSize];                //buffe
+      unsigned int countb = 0;
       const int misslimit = 2048;
       int misscount = 0;
 
@@ -569,7 +577,7 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
       //send file to client with 1024 buffer.
       const size_t bufferSize = 1024;  //buffer size
       byte buffe[bufferSize];          //buffe
-      while (file.available()) {
+      while (file.available() && client.connected()) {
         size_t bytesRead = file.read(buffe, bufferSize);
         client.write(buffe, bytesRead);
       }
@@ -603,7 +611,7 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
         errormessage = "Cannot delete " + rmpath + "/";
       }
     }
-  } 
+  }
   
   #ifndef DisableRename
   else if (POSTflag && request.indexOf("rename=rename") > -1) {  //rename
