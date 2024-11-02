@@ -326,8 +326,8 @@ void process_request(WiFiEthernetClient& client, String request) {
       file.open(pathchar, FILE_WRITE);
       if (!file) {
         errormessage = "cannot make now file.";
-        Serial.println(erromessage);
-      } 
+        Serial.println(errormessage);
+      }
       while (client.available()) {
         char c = client.read();
         //Serial.write(c);
