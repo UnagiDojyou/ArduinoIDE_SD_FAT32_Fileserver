@@ -11,6 +11,9 @@ Connect an SD card via SPI and browse, edit (delete, rename), and upload the con
 Easy using to other boards.
 * __No additional libraries required.__<br>
 Use only SD.h (& FS.h) & WiFi.h (or Ethernet.h)
+* __SdFat version__<br>
+You can choose SdFat.h insted of SD.h. It's faster.<br>
+[SdFat Branch](https://github.com/UnagiDojyou/ArduinoIDE_SD_FAT32_Fileserver/tree/Sdfat)
 
 ## About each version
 * __ESP32_FAT32_Fileserver_readwrite__<br>
