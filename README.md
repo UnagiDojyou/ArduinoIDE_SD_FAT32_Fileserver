@@ -13,6 +13,11 @@ Connect an SD card via SPI and browse, edit (delete, rename), and upload the con
 Easy using to other boards.
 * __No additional libraries required.__<br>
 Use only SdFat.h & WiFi.h (or Ethernet.h)
+* __SD.h version__<br>
+You can choose SD.h insted of SdFat.h.<br>
+[main Branch](https://github.com/UnagiDojyou/ArduinoIDE_SD_FAT32_Fileserver/tree/main)
+* __API available for Python__<br>
+Sample code for handling API in Python is provided.
 
 ## About each version
 * __RaspberryPiPicoW_FAT32_Fileserver_readwrite__<br>
