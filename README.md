@@ -14,6 +14,8 @@ Use only SD.h (& FS.h) & WiFi.h (or Ethernet.h)
 * __SdFat version__<br>
 You can choose SdFat.h insted of SD.h. It's faster.<br>
 [SdFat Branch](https://github.com/UnagiDojyou/ArduinoIDE_SD_FAT32_Fileserver/tree/Sdfat)
+* __API available for Python__<br>
+Sample code for handling API in Python is provided.
 
 ## About each version
 * __ESP32_FAT32_Fileserver_readwrite__<br>
