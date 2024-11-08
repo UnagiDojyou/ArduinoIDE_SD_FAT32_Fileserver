@@ -543,7 +543,7 @@ void sendHTTP(WiFiEthernetClient& client, const String& request) {
       client.print("<hr>");
       client.print("<p>");
       client.print("Powered by ");
-      client.print("<a href=\"https://github.com/UnagiDojyou/ArduinoIDE_SdFat_FAT32_Fileserver\">ArduinoIDE_SdFat_FAT32_Fileserver</a>");
+      client.print("<a href=\"https://github.com/UnagiDojyou/ArduinoIDE_SD_FAT32_Fileserver/tree/Sdfat\">ArduinoIDE_SdFat_FAT32_Fileserver</a>");
       client.println("</p>");
       client.println("</body>");
       client.println("</html>");
