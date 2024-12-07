@@ -212,7 +212,10 @@ def change_name(old_path, new_path, retry=5, timeout = (6, 30), wait_time = 5):
         if not os.path.dirname(old_path) == os.path.dirname(new_path):
             print('old_path and new_path have different parent directories.', file=sys.stderr)
             return False
-        parent_path = os.path.dirname(new_path) + '/'
+        if os.path.dirname(new_path)[-1] == '/':
+            parent_path = os.path.dirname(new_path)
+        else:
+            parent_path = os.path.dirname(new_path) + '/'
         old_name = os.path.basename(old_path)
         new_name = os.path.basename(new_path)
     else:
@@ -257,12 +260,14 @@ def change_name(old_path, new_path, retry=5, timeout = (6, 30), wait_time = 5):
 
 
 if __name__=="__main__":
+    print('ArduinoIDE SD FAT32 Fileserver API')
     print('enter IP address')
     set_ipaddr(input())
-    print('ArduinoIDE SD FAT32 Fileserver API')
     if not (check_path_exist('/')):
         print(ipaddr + 'not available')
         sys.exit(1)
+    print()
+
     print('ls /')
     print(get_file_dir('/'))
     print()
